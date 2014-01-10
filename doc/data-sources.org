@@ -1,0 +1,3 @@
+| [[https://data.cdc.gov/Health-Statistics/Selected-Trend-Table-from-Health-United-States-201/vp9c-m6nq][leading-cause-of-death.csv]] | Selected Trend Table from Health, United States, 2011. Leading causes of death and numbers of deaths, by sex, race, and Hispanic origin: United States, 1980 and 2009 |
+| [[http://www.cdc.gov/nchs/hus/diseases.htm#deaths][table020.xls]]               | Age-adjusted death rates for selected causes of death, by sex, race, and Hispanic origin: United States, selected years 1950-2010                                     |
+|                            |                                                                                                                                                                       |

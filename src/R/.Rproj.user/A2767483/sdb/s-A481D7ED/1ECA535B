@@ -1,0 +1,17 @@
+{
+    "contents" : "# Make sure you put your Tycho API key (http://www.tycho.pitt.edu/apikey.php)\n# in a file named .tychoapi in your home directory\ntychoApiKey <- readLines(paste(Sys.getenv(\"HOME\"), \"/.tychoapi\", sep=\"\"), 1)\n\nsource(\"tycho.R\")\n\ndiseases <- readList(\"diseases\")\ncities <- readList(\"cities\")\nstates <- readList(\"states\")\n\nmumps <- diseases[23,1]\n\n# Build a data frame consisting of all the states\nif (file.exists(\"states.data.Rda\"))\n   load(\"states.data.Rda\")\nelse {\n   states.data <- data.frame()\n   for (d in driseases$disease) {\n      for (s in states$state) {\n         print(paste(\"Reading data for disease\", d, \"state\", s))\n         newdf <- read.csv(query(disease=d, state=s))\n         if (nrow(newdf) > 0) {\n            newdf$disease <- d\n            states.data <- rbind(states.data, newdf)\n         }\n      }\n   }\n   \n   states.data$disease <- as.factor(states.data$disease)\n   states.data$year <- as.factor(states.data$year)\n   states.data$week <- as.factor(states.data$week)\n}\n\n\n# Subset to Wisconsin Mumps cases and plot\nmumps.wi <- subset(states.data, disease==mumps & state==\"WI\")\np <- ggplot(mumps.wi, aes(x=as.Date(paste(\"1\", week, year, sep=\"-\"), format = \"%w-%W-%Y\"), y=number)) + geom_bar(stat=\"identity\")\n\np\n",
+    "created" : 1389318833638.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3989285669",
+    "id" : "1ECA535B",
+    "lastKnownWriteTime" : 1389330979,
+    "path" : "~/src/web-app-explore/src/R/analyze_tycho_level_2.R",
+    "project_path" : "analyze_tycho_level_2.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}
