@@ -9,9 +9,9 @@ addApiKey <- function(url, key, format="csv") {
 }
 
 # read a list of available data (like diseases, cities and states)
-readList <- function (u) {
+readList <- function (apikey, u) {
    url <- paste(apiUrl, u, "?", sep="")
-   url <- addApiKey(url, tychoApiKey)
+   url <- addApiKey(url, apikey)
    read.csv(url, stringsAsFactors=FALSE)
 }
 
