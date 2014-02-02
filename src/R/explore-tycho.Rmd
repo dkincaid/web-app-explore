@@ -1,0 +1,124 @@
+# Exploring the Tycho Data
+I'd like to start off this series of posts by taking a look at the data we're going to be working
+with. As a reminder, I'm sharing the code for this series at https://github.com/dkincaid/web-app-explore.
+
+As I mentioned last post the data that we're going to use comes from the
+[Tycho project][tycho] at University of Pittsburgh. I'm going to use the
+[Level 2 data][level2]. I chose this data for a couple
+reasons. The first is that it is a little larger dataset (47 diseases over 1888-2013) and offers an
+API to access the data.
+
+For more information on this data see:
+
+> Willem G. van Panhuis, John Grefenstette, Su Yon Jung, Nian Shong Chok, Anne Cross, Heather Eng,
+> Bruce Y Lee, Vladimir Zadorozhny, Shawn Brown, Derek Cummings, Donald S. Burke. Contagious
+> Diseases in the United States from 1888 to the present. NEJM 2013; 369(22): 2152-2158.
+
+## Overview
+I have already downloaded and processed all the data for all the states into a file named
+`states_cases.Rda`. Let's load that up and have a look.
+
+```{r loading_data}
+options(width=120, warn=-1)
+load("states_cases.Rda")
+str(states_cases)
+summary(states_cases)
+```
+
+So we have counts of the number of cases reported in each state for each week of the year. What is
+the range of years?
+
+```{r year_range}
+c(min(states_cases$year), max(states_cases$year))
+```
+Let's see how the total cases for each disease in the data. Here I'm going to use the new package
+from Hadley Wickam, [`dplyr`][dplyr] (which I am loving!).
+
+```{r total_disease_counts}
+library(dplyr, quietly=TRUE, warn.conflicts=FALSE)
+states_cases %.%
+    group_by(disease) %.%
+    summarise(total=sum(number)) %.%
+    arrange(desc(total))
+```
+
+and what about the top 10 years?
+
+```{r total_year_counts}
+states_cases %.%
+    group_by(year) %.%
+    summarise(total=sum(number)) %.%
+    arrange(desc(total)) %.%
+    head(10)
+```
+
+How about looking at the worst 10 years for each disease (I'll just show the first 3 diseases here
+to save some space)
+
+```{r topyears}
+topyear <- function(d) {
+    subset(states_cases, disease==d) %.%
+        group_by(year) %.%
+        summarise(total=sum(number)) %.%
+        arrange(desc(total)) %.%
+        head(10)
+}
+
+topyears.by.disease <- lapply(levels(states_cases$disease), topyear)
+names(topyears.by.disease) <- levels(states_cases$disease)
+head(topyears.by.disease,3)
+```
+
+So we can see that for each disease we have very different amounts of data. Let's see what the min
+and max year is for each disease
+
+```{r minmaxyear}
+states_cases %.%
+    group_by(disease) %.%
+    summarise(min=min(year), max=max(year), range=as.numeric(max)-as.numeric(min)) %.%
+    arrange(disease)
+```
+
+## Graphical visualizations
+Finally, let's look at a couple of plots. Here is a look at diphtheria and whooping cough in the
+states of New York, California, Texas and Illinois.
+
+```{r, fig.height=5}
+library(ggplot2, quietly=TRUE)
+di <- c("DIPHTHERIA","WHOOPING COUGH [PERTUSSIS]")
+
+dip_whoop <- subset(states_cases, disease %in% di & state %in% c("NY","CA","TX","IL"))
+
+ggplot(dip_whoop, aes(x=as.Date(paste("1", week, year, sep="-"), format = "%w-%W-%Y"), y=number)) +
+    geom_bar(stat="identity", width=7) +
+    scale_y_continuous("Cases", limits=c(0,1500)) +
+    scale_x_date("Week") +
+    facet_grid(disease ~ state)
+```
+Now I'll create a matrix for Whooping Cough with states as rows and years as columns and create a
+heatmap.
+
+```{r, fig.width=10}
+library(reshape2, quietly=TRUE, warn.conflicts=FALSE)
+library(RColorBrewer, quietly=TRUE, warn.conflicts=FALSE)
+influenza.year.by.state <- acast(subset(states_cases, disease=="INFLUENZA"), state ~ year, value.var='number', fun.aggregate=sum)
+influenza.year.by.state[1:10, 1:10]
+m <- melt(influenza.year.by.state)
+
+ggplot(m, aes(x=Var2, y=Var1, fill=value)) +
+    geom_tile() +
+    scale_colour_brewer() +
+    labs(x="Year", y="State", color="Cases") +
+    theme_bw()
+```
+
+## Next time
+I think that is enough for now. That should give you a decent sense for the data we'll be working
+with. Next time I'll start creating the [Shiny][shiny] application that will let someone do some of
+this exploration on a web based UI.
+
+[tycho]: http://www.tycho.pitt.edu/
+[level2]: http://www.tycho.pitt.edu/data/level2.php
+[dplyr]: http://blog.rstudio.org/2014/01/17/introducing-dplyr
+[shiny]: http://www.rstudio.com/shiny/
+
